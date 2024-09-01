@@ -29,4 +29,4 @@ const Residence = sequelize.define('Residence', {
     },
 });
 
-export default Residence;
+export default Residence; // Ensure default export

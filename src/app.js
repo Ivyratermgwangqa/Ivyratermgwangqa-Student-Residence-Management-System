@@ -13,13 +13,12 @@ const app = express();
 
 app.use(express.json()); // Middleware to parse JSON bodies
 
-// Apply authentication middleware globally (or to specific routes)
-app.use('/api', authenticateToken);
-
-// Register routes
-app.use('/api/users', userRoutes);
-app.use('/api/residences', residenceRoutes);
+// Register public routes
 app.use('/api/auth', authRoutes);
+
+// Apply authentication middleware to protected routes
+app.use('/api/residences', authenticateToken, residenceRoutes);
+app.use('/api/users', authenticateToken, userRoutes);
 
 // Apply error handler middleware after all routes
 app.use(errorHandler);

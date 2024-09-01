@@ -1,12 +1,14 @@
 import express from 'express';
-import { sequelize } from './models/index.mjs';
-import userRoutes from './routes/userRoutes.mjs'; // Adjust the path if needed
+import { sequelize } from './models/index.js'; // Ensure this path is correct
+import userRoutes from './routes/userRoutes.js'; // Ensure this path is correct
+import residenceRoutes from './routes/residenceRoutes.js'; // Ensure this path is correct
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use('/api/users', userRoutes);
+app.use('/api/residences', residenceRoutes);
 
 const startServer = async () => {
     try {
@@ -21,5 +23,4 @@ const startServer = async () => {
         console.error('Error starting server:', error);
     }
 };
-
 startServer();

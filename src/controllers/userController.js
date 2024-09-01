@@ -1,28 +1,33 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js'; // Adjust the path if needed
 
 // Register a new user
-const registerUser = async (req, res, next) => {
+const registerUser = async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+    }
 
     try {
         // Check if user already exists
         const existingUser = await User.findOne({ where: { email } });
+
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(400).json({ error: 'User already exists' });
         }
 
-        // Hash the password
+        // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create a new user
+        // Create new user
         const newUser = await User.create({ email, password: hashedPassword });
 
-        // Respond with the newly created user
-        res.status(201).json({ id: newUser.id, email: newUser.email });
+        return res.status(201).json(newUser);
     } catch (error) {
-        next(error); // Pass errors to the error handler
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
 

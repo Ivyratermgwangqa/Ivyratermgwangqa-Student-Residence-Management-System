@@ -1,14 +1,11 @@
 import Residence from '../models/Residence.js'; // Adjust the path if needed
 
 // Create a new residence
-const createResidence = async (req, res, next) => {
+export const createResidence = async (req, res, next) => {
     const { name, address, capacity } = req.body;
 
     try {
-        // Create a new residence
         const newResidence = await Residence.create({ name, address, capacity });
-
-        // Respond with the newly created residence
         res.status(201).json({
             id: newResidence.id,
             name: newResidence.name,
@@ -16,12 +13,13 @@ const createResidence = async (req, res, next) => {
             capacity: newResidence.capacity
         });
     } catch (error) {
+        console.error('Error creating residence:', error);
         next(error); // Pass errors to the error handler
     }
 };
 
 // Get all residences
-const getAllResidences = async (req, res, next) => {
+export const getAllResidences = async (req, res, next) => {
     try {
         // Fetch all residences
         const residences = await Residence.findAll();
@@ -34,7 +32,7 @@ const getAllResidences = async (req, res, next) => {
 };
 
 // Get a residence by ID
-const getResidenceById = async (req, res, next) => {
+export const getResidenceById = async (req, res, next) => {
     const { id } = req.params;
 
     try {
@@ -52,7 +50,7 @@ const getResidenceById = async (req, res, next) => {
 };
 
 // Update residence details
-const updateResidence = async (req, res, next) => {
+export const updateResidence = async (req, res, next) => {
     const { id } = req.params;
     const { name, address, capacity } = req.body;
 
@@ -84,7 +82,7 @@ const updateResidence = async (req, res, next) => {
 };
 
 // Delete a residence
-const deleteResidence = async (req, res, next) => {
+export const deleteResidence = async (req, res, next) => {
     const { id } = req.params;
 
     try {
@@ -103,5 +101,3 @@ const deleteResidence = async (req, res, next) => {
         next(error); // Pass errors to the error handler
     }
 };
-
-export default { createResidence, getAllResidences, getResidenceById, updateResidence, deleteResidence };
