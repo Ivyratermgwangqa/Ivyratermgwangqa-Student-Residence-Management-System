@@ -1,1 +1,42 @@
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+<!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script> -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Residence Management System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>Student Residence Management System</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Residences</a></li>
+                <li><a href="#">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="residence-list">
+            <!-- Residences will be dynamically loaded here -->
+        </section>
+        <section id="map">
+            <!-- Google Maps will be integrated here -->
+            <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+            </script>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Student Residence Management System</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
