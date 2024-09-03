@@ -1,20 +1,76 @@
-import Residence from '../models/Residence.js'; // Adjust the path if needed
+import Residence from '../models/Residence.js';
+import Application from '../models/Application.js';
 
 // Create a new residence
 export const createResidence = async (req, res, next) => {
-    const { name, address, capacity } = req.body;
+    const { name, address, capacity, description } = req.body;
 
     try {
-        const newResidence = await Residence.create({ name, address, capacity });
-        res.status(201).json({
-            id: newResidence.id,
-            name: newResidence.name,
-            address: newResidence.address,
-            capacity: newResidence.capacity
+        const newResidence = await Residence.create({
+            name,
+            address,
+            capacity,
+            description,
+            managerId: req.user.id, // Assuming the manager creating the residence is logged in
         });
+
+        res.status(201).json({ message: 'Residence created successfully', residence: newResidence });
     } catch (error) {
-        console.error('Error creating residence:', error);
-        next(error); // Pass errors to the error handler
+        next(error);
+    }
+};
+
+// Accept an application
+export const acceptApplication = async (req, res, next) => {
+    const { applicationId } = req.params;
+
+    try {
+        const application = await Application.findByPk(applicationId);
+
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        application.status = 'accepted';
+        await application.save();
+
+        res.status(200).json({ message: 'Application accepted', application });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Decline an application
+export const declineApplication = async (req, res, next) => {
+    const { applicationId } = req.params;
+
+    try {
+        const application = await Application.findByPk(applicationId);
+
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        application.status = 'declined';
+        await application.save();
+
+        res.status(200).json({ message: 'Application declined', application });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get all applications for a manager's residences
+export const getApplications = async (req, res, next) => {
+    try {
+        const residences = await Residence.findAll({ where: { managerId: req.user.id } });
+        const residenceIds = residences.map(residence => residence.id);
+
+        const applications = await Application.findAll({ where: { residenceId: residenceIds } });
+
+        res.status(200).json({ applications });
+    } catch (error) {
+        next(error);
     }
 };
 
@@ -52,7 +108,7 @@ export const getResidenceById = async (req, res, next) => {
 // Update residence details
 export const updateResidence = async (req, res, next) => {
     const { id } = req.params;
-    const { name, address, capacity } = req.body;
+    const { name, address, capacity, description } = req.body;
 
     try {
         // Find the residence by ID
@@ -65,6 +121,7 @@ export const updateResidence = async (req, res, next) => {
         if (name) residence.name = name;
         if (address) residence.address = address;
         if (capacity) residence.capacity = capacity;
+        if (description) residence.description = description;
 
         // Save the updated residence
         await residence.save();
@@ -74,7 +131,8 @@ export const updateResidence = async (req, res, next) => {
             id: residence.id,
             name: residence.name,
             address: residence.address,
-            capacity: residence.capacity
+            capacity: residence.capacity,
+            description: residence.description
         });
     } catch (error) {
         next(error); // Pass errors to the error handler

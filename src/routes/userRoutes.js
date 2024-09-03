@@ -1,13 +1,24 @@
 import express from 'express';
-import userController from '../controllers/userController.js';
+import {
+    registerUser,
+    loginUser,
+    getAllUsers,
+    getUserById,
+    updateUser,
+    deleteUser
+} from '../controllers/userController.js';
+import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Define routes for user operations
-router.post('/register', userController.registerUser);
-router.post('/login', userController.loginUser);
-router.get('/:id', userController.getUserById);
-router.put('/:id', userController.updateUser);
-router.delete('/:id', userController.deleteUser);
+// Public routes
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+
+// Protected routes
+router.get('/', authMiddleware, adminMiddleware, getAllUsers); // Admin only
+router.get('/:id', authMiddleware, getUserById);
+router.put('/:id', authMiddleware, updateUser);
+router.delete('/:id', authMiddleware, adminMiddleware, deleteUser); // Admin only
 
 export default router;

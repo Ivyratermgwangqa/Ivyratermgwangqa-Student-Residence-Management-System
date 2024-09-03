@@ -1,126 +1,127 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js'; // Adjust the path if needed
+import User from '../models/User.js';
+
+const saltRounds = 10;
+const jwtSecret = process.env.JWT_SECRET;
 
 // Register a new user
-const registerUser = async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
-    }
+export const registerUser = async (req, res, next) => {
+    const { username, email, password, role } = req.body;
 
     try {
-        // Check if user already exists
+        // Check if the username or email is already taken
         const existingUser = await User.findOne({ where: { email } });
-
         if (existingUser) {
-            return res.status(400).json({ error: 'User already exists' });
+            return res.status(400).json({ message: 'Email is already taken' });
         }
 
-        // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Create new user
-        const newUser = await User.create({ email, password: hashedPassword });
+        // Create the user
+        const newUser = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+            role: role || 'student', // Default role is 'student'
+        });
 
-        return res.status(201).json(newUser);
+        res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal server error' });
+        next(error);
     }
 };
 
 // Login a user
-const loginUser = async (req, res, next) => {
+export const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
 
     try {
-        // Find user by email
         const user = await User.findOne({ where: { email } });
+
         if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Compare password
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Compare the provided password with the hashed password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
+        // Generate a token
+        const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret, { expiresIn: '1h' });
 
-        // Generate a JWT token
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        // Respond with the token
-        res.status(200).json({ token });
+        res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
-        next(error); // Pass errors to the error handler
+        next(error);
     }
 };
 
-// Get user by ID
-const getUserById = async (req, res, next) => {
+// Get all users (Admin only)
+export const getAllUsers = async (req, res, next) => {
+    try {
+        const users = await User.findAll();
+        res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get a user by ID
+export const getUserById = async (req, res, next) => {
     const { id } = req.params;
 
     try {
-        // Find the user by ID
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Update a user's information
+export const updateUser = async (req, res, next) => {
+    const { id } = req.params;
+    const { username, email, role } = req.body;
+
+    try {
         const user = await User.findByPk(id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Respond with user details
-        res.status(200).json({ id: user.id, email: user.email });
-    } catch (error) {
-        next(error); // Pass errors to the error handler
-    }
-};
+        user.username = username || user.username;
+        user.email = email || user.email;
+        user.role = role || user.role;
 
-// Update user details
-const updateUser = async (req, res, next) => {
-    const { id } = req.params;
-    const { email, password } = req.body;
-
-    try {
-        // Find the user by ID
-        const user = await User.findByPk(id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Update user details
-        if (email) user.email = email;
-        if (password) user.password = await bcrypt.hash(password, 10);
-
-        // Save the updated user
         await user.save();
 
-        // Respond with the updated user details
-        res.status(200).json({ id: user.id, email: user.email });
+        res.status(200).json({ message: 'User updated successfully', user });
     } catch (error) {
-        next(error); // Pass errors to the error handler
+        next(error);
     }
 };
 
 // Delete a user
-const deleteUser = async (req, res, next) => {
+export const deleteUser = async (req, res, next) => {
     const { id } = req.params;
 
     try {
-        // Find the user by ID
         const user = await User.findByPk(id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Delete the user
         await user.destroy();
-
-        // Respond with a success message
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
-        next(error); // Pass errors to the error handler
+        next(error);
     }
 };
-
-export default { registerUser, loginUser, getUserById, updateUser, deleteUser };
