@@ -1,20 +1,21 @@
+// src/routes/applicationRoutes.js
 import express from 'express';
+import authenticateToken from '../middlewares/authMiddleware.js';
 import {
     createApplication,
-    getAllApplications,
-    getApplicationById,
-    updateApplicationStatus,
-    deleteApplication
+    getUserApplications,
+    getResidenceApplications,
+    acceptApplication,
+    declineApplication,
 } from '../controllers/applicationController.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Routes for applications
-router.post('/', authMiddleware, createApplication);
-router.get('/', authMiddleware, getAllApplications);
-router.get('/:id', authMiddleware, getApplicationById);
-router.put('/:id/status', authMiddleware, updateApplicationStatus);
-router.delete('/:id', authMiddleware, deleteApplication);
+// Routes
+router.post('/', authenticateToken, createApplication); // Create a new application
+router.get('/user', authenticateToken, getUserApplications); // Get all applications for the logged-in user
+router.get('/residence/:residenceId', authenticateToken, getResidenceApplications); // Get all applications for a specific residence
+router.post('/:applicationId/accept', authenticateToken, acceptApplication); // Accept an application
+router.post('/:applicationId/decline', authenticateToken, declineApplication); // Decline an application
 
 export default router;

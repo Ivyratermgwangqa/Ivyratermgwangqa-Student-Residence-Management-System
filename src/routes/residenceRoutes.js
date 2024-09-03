@@ -1,23 +1,21 @@
+// src/routes/residenceRoutes.js
 import express from 'express';
+import authenticateToken from '../middlewares/authMiddleware.js';
 import {
     createResidence,
-    acceptApplication,
-    declineApplication,
-    getApplications,
     getAllResidences,
     getResidenceById,
     updateResidence,
-    deleteResidence
+    deleteResidence,
 } from '../controllers/residenceController.js';
-import authMiddleware from '../middlewares/authMiddleware.js';
-import { authorizeRoles } from '../middlewares/roleMiddleware.js';
+
 const router = express.Router();
 
-// Define your routes
-router.post('/', createResidence);
-router.get('/', getAllResidences);
-router.get('/:id', getResidenceById);
-router.put('/:id', updateResidence);
-router.delete('/:id', deleteResidence);
+// Routes
+router.post('/', authenticateToken, createResidence); // Create a new residence
+router.get('/', authenticateToken, getAllResidences); // Get all residences
+router.get('/:residenceId', authenticateToken, getResidenceById); // Get a residence by ID
+router.put('/:residenceId', authenticateToken, updateResidence); // Update a residence
+router.delete('/:residenceId', authenticateToken, deleteResidence); // Delete a residence
 
 export default router;

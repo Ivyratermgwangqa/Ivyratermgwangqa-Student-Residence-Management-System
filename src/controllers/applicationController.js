@@ -1,103 +1,86 @@
+// src/controllers/applicationController.js
 import Application from '../models/Application.js';
 import Residence from '../models/Residence.js';
-import User from '../models/User.js';
 
 // Create a new application
 export const createApplication = async (req, res, next) => {
     const { residenceId } = req.body;
-
     try {
-        const userId = req.user.id; // Assuming the user is logged in
-
-        // Check if the residence exists
         const residence = await Residence.findByPk(residenceId);
         if (!residence) {
             return res.status(404).json({ message: 'Residence not found' });
         }
 
-        // Create the application
         const newApplication = await Application.create({
-            userId,
             residenceId,
-            status: 'pending', // Default status
+            userId: req.user.id,
+            status: 'pending',
         });
 
-        res.status(201).json({ message: 'Application created successfully', application: newApplication });
+        res.status(201).json({ message: 'Application submitted successfully', application: newApplication });
     } catch (error) {
         next(error);
     }
 };
 
-// Get all applications
-export const getAllApplications = async (req, res, next) => {
+// Get all applications for a specific user
+export const getUserApplications = async (req, res, next) => {
     try {
-        const applications = await Application.findAll({
-            include: [
-                { model: Residence, as: 'residence' },
-                { model: User, as: 'user' },
-            ],
-        });
+        const applications = await Application.findAll({ where: { userId: req.user.id } });
 
-        res.status(200).json(applications);
+        res.status(200).json({ applications });
     } catch (error) {
         next(error);
     }
 };
 
-// Get an application by ID
-export const getApplicationById = async (req, res, next) => {
-    const { id } = req.params;
+// Get all applications for a specific residence
+export const getResidenceApplications = async (req, res, next) => {
+    const { residenceId } = req.params;
+    try {
+        const applications = await Application.findAll({ where: { residenceId } });
+
+        res.status(200).json({ applications });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Accept an application
+export const acceptApplication = async (req, res, next) => {
+    const { applicationId } = req.params;
 
     try {
-        const application = await Application.findByPk(id, {
-            include: [
-                { model: Residence, as: 'residence' },
-                { model: User, as: 'user' },
-            ],
-        });
+        const application = await Application.findByPk(applicationId);
 
         if (!application) {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        res.status(200).json(application);
-    } catch (error) {
-        next(error);
-    }
-};
-
-// Update an application's status
-export const updateApplicationStatus = async (req, res, next) => {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    try {
-        const application = await Application.findByPk(id);
-        if (!application) {
-            return res.status(404).json({ message: 'Application not found' });
-        }
-
-        application.status = status;
+        application.status = 'accepted';
         await application.save();
 
-        res.status(200).json({ message: 'Application status updated', application });
+        res.status(200).json({ message: 'Application accepted', application });
     } catch (error) {
         next(error);
     }
 };
 
-// Delete an application
-export const deleteApplication = async (req, res, next) => {
-    const { id } = req.params;
+// Decline an application
+export const declineApplication = async (req, res, next) => {
+    const { applicationId } = req.params;
 
     try {
-        const application = await Application.findByPk(id);
+        const application = await Application.findByPk(applicationId);
+
         if (!application) {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        await application.destroy();
-        res.status(200).json({ message: 'Application deleted successfully' });
+        application.status = 'declined';
+        await application.save();
+
+        res.status(200).json({ message: 'Application declined', application });
     } catch (error) {
         next(error);
     }

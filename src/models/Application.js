@@ -1,3 +1,4 @@
+// src/models/Application.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 import Residence from './Residence.js';
@@ -12,36 +13,28 @@ const Application = sequelize.define('Application', {
     status: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'pending', // statuses could be 'pending', 'accepted', 'declined'
-    },
-    userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: User,
-            key: 'id',
-        },
+        defaultValue: 'pending',
     },
     residenceId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
         references: {
             model: Residence,
             key: 'id',
         },
     },
-    createdAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
+    userId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: User,
+            key: 'id',
+        },
     },
-    updatedAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
+    // Add more fields if needed
 }, {
-    tableName: 'applications',
+    timestamps: true,
 });
 
+// Associations
 Application.belongsTo(Residence, { foreignKey: 'residenceId' });
 Application.belongsTo(User, { foreignKey: 'userId' });
 

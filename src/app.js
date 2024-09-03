@@ -1,36 +1,29 @@
+// src/app.js
 import express from 'express';
-import userRoutes from './routes/userRoutes.js';
-import residenceRoutes from './routes/residenceRoutes.js';
-import authRoutes from './routes/authRoutes.js';
-import authenticateToken from './middlewares/authMiddleware.js';
-import errorHandler from './middlewares/errorHandler.js'; // Import the error handler
 import dotenv from 'dotenv';
-import sequelize from './config/database.js';
+import authRoutes from './routes/authRoutes.js';
+import residenceRoutes from './routes/residenceRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 dotenv.config();
 
 const app = express();
 
-app.use(express.json()); // Middleware to parse JSON bodies
+app.use(express.json());
 
-// Register public routes
+// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/residences', residenceRoutes);
+app.use('/api/applications', applicationRoutes);
 
-// Apply authentication middleware to protected routes
-app.use('/api/residences', authenticateToken, residenceRoutes);
-app.use('/api/users', authenticateToken, userRoutes);
-
-// Apply error handler middleware after all routes
+// Error Handling Middleware
 app.use(errorHandler);
 
-app.listen(process.env.PORT, async () => {
-    try {
-        await sequelize.authenticate();
-        console.log('Database connection established successfully.');
-        console.log(`Server is running on port ${process.env.PORT}`);
-    } catch (error) {
-        console.error('Unable to connect to the database:', error);
-    }
-});
+const PORT = process.env.PORT || 3000;
 
-export default app;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

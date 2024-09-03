@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { generateToken, isValidEmail, isValidPassword, handleError } from '../utils/helpers.js';
 
-const register = async (req, res, next) => {
+// Register a new user
+export const register = async (req, res, next) => {
     const { email, password, role } = req.body;
 
     if (!isValidEmail(email)) {
@@ -21,9 +22,7 @@ const register = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = await User.create({ email, password: hashedPassword, role: role || 'user' });
-
+        const newUser = await User.create({ email, password: hashedPassword, role });
         const token = generateToken(newUser);
 
         res.status(201).json({ id: newUser.id, email: newUser.email, role: newUser.role, token });
@@ -32,7 +31,8 @@ const register = async (req, res, next) => {
     }
 };
 
-const login = async (req, res, next) => {
+// Login an existing user
+export const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!isValidEmail(email)) {
@@ -55,14 +55,14 @@ const login = async (req, res, next) => {
         }
 
         const token = generateToken(user);
-
-        res.status(200).json({ token });
+        res.status(200).json({ token, role: user.role });
     } catch (error) {
         handleError(res, error);
     }
 };
 
-const getUserDetails = async (req, res, next) => {
+// Get user details
+export const getUserDetails = async (req, res, next) => {
     try {
         const user = await User.findByPk(req.user.id);
         if (!user) {
@@ -74,5 +74,3 @@ const getUserDetails = async (req, res, next) => {
         handleError(res, error);
     }
 };
-
-export default { register, login, getUserDetails };
